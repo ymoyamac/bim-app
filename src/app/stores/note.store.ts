@@ -6,7 +6,7 @@ import { v7 as uuid } from 'uuid';
 
 type NoteState = {
     notes: Note[];
-    selectedNote: Note | undefined;
+    selectedNote: string | undefined;
 };
 
 type NoteStoreActions = {
@@ -14,6 +14,8 @@ type NoteStoreActions = {
     saveNote: (note: Note) => void;
     updateNote: (note: Note) => void;
     addNewRow: (id: string) => void;
+    deleteNote: (id: string) => void;
+    setSelectedNote: (id: string | undefined) => void;
 };
 
 type NoteStore = NoteState & NoteStoreActions;
@@ -23,10 +25,32 @@ export const useNoteStore = create<NoteStore>()(
         notes: [],
         selectedNote: undefined,
         isFirstLine: true,
+        setSelectedNote: (id) => set({ selectedNote: id }, false, 'setSelectedNote'),
         getNoteById: (id) => get().notes.find((note) => note.id === id),
-        saveNote: (note) => set((state) => ({ notes: [...state.notes, note] }), false, 'saveNote'),
-        updateNote: (note) => set((state) => ({ notes: state.notes.map((n) => n.id === note.id ? { ...note, updatedAt: new Date() } : n) }), false, 'updateNote'),
-        addNewRow: (id) => set((state) => ({ notes: addBlank(state, id) }), false, 'addNewRow')
+        saveNote: (note) => set((state) => ({ notes: [...state.notes, note], selectedNote: note.id }), false, 'saveNote'),
+        updateNote: (note) => set((state) => ({ notes: state.notes.map((n) => n.id === note.id ? { ...note, updatedAt: new Date() } : n), selectedNote: note.id }), false, 'updateNote'),
+        addNewRow: (id) =>set(
+            (state) => {
+                const notes = addBlank(state, id);
+                const blank = notes[notes.findIndex((n) => n.id === id) + 1];
+                return { notes, selectedNote: blank?.id ?? id };
+            },
+            false,
+            'addNewRow',
+        ),
+        deleteNote: (id) => set(
+            (state) => {
+                const index = state.notes.findIndex((n) => n.id === id);
+                const prev = state.notes.length === 0 ? undefined : state.notes[index - 1];
+                return {
+                    notes: state.notes.filter((n) => n.id !== id),
+                    selectedNote: prev?.id
+                }
+            },
+            false,
+            'deleteNote'
+        ),
+
     })),
 );
 

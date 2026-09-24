@@ -18,6 +18,8 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
     const saveNote = useNoteStore((state) => state.saveNote);
     const updateNote = useNoteStore((state) => state.updateNote);
     const addNewRow = useNoteStore((state) => state.addNewRow);
+    const deleteNote = useNoteStore((state) => state.deleteNote);
+    const setSelectedNote = useNoteStore((state) => state.setSelectedNote);
 
     const [value, setValue] = useState<string>(note?.description ?? '');
     const ref = useRef<HTMLTextAreaElement>(null);
@@ -26,7 +28,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
 
     useEffect(() => {
         const savedValue = note?.description ?? '';
-        if (value === '' || value === savedValue) return;
+        if (value === savedValue) return;
         timerRef.current = setTimeout(() => {            
             
             if (note) {
@@ -48,9 +50,19 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
                 updatedBy: 'default',
                 isActive: true,
             });
-        }, 2000);
+        }, 700);
         return () => clearTimeout(timerRef.current);
     }, [value]);
+
+    const isFocused = useNoteStore((s) => note !== undefined && s.selectedNote === note.id);
+
+    useEffect(() => {
+        if (!isFocused) return;
+        const el = ref.current;
+        if (!el) return;
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+    }, [isFocused]);
 
     function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
         setValue(event.target.value);
@@ -62,6 +74,13 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
     }
 
     function handleKeyPress(event: KeyboardEvent<HTMLTextAreaElement>) {
+
+        if (event.key === 'Backspace' && value === '' && note) {
+            event.preventDefault();
+            deleteNote(note.id);
+            return;
+        }
+
         if (event.key === '/') {
             console.log('Show menu');
             return;
@@ -101,6 +120,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
 
     function handleFocus(note?: Note) {
         if (!note) return;
+        setSelectedNote(note.id);
     }
 
     return (

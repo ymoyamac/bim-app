@@ -25,7 +25,7 @@ export function NoteContainer() {
                 {notes.map((note) => (
                     <NoteRaw key={note.id} id={note.id} name={note.id} note={note} hasFocus={true} />
                 ))}
-                {notes.length === 0 && <NoteRaw key='new-note' hasFocus={false} />}
+                {notes.length === 0 && <NoteRaw key='new-note' hasFocus={true} />}
             </div>
         </article>
     );
