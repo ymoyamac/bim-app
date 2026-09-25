@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { useTextStore } from '@/components/Text';
-import type { Models } from '@/components/Text';
+import { Def, useTextStore } from '@/components/Text';
 
-import { v7 as uuid } from 'uuid';
 import classNames from 'classnames';
 
 export interface TextLineProps {
@@ -24,33 +22,25 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
     const deleteLine = useTextStore((state) => state.deleteLine);
     const isFocused = useTextStore((state) => line !== undefined && state.selectedLine === line.id);
 
-    const [value, setValue] = useState<string>(line?.content ?? '');
+    const [content, setContent] = useState<string>(line?.content ?? '');
     const ref = useRef<HTMLTextAreaElement>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
         const savedValue = line?.content ?? '';
-        if (value === savedValue) return;
+        if (content === savedValue) return;
         timerRef.current = setTimeout(() => {            
             
             if (line) {
                 const lineFound = getLine(line.id)!;
-                const noteToUpdate: Models.TextLine = { ...lineFound, content: value };
+                const noteToUpdate: Def.TextLine = { ...lineFound, content };
                 updateLine(noteToUpdate);
                 return;
             }
-            saveLine({
-                id: uuid(),
-                content: '',
-                isPinned: false,
-                hasIdentation: false,
-                isActive: true,
-                creationDate: new Date(),
-                createdBy: '',
-            });
+            saveLine(Def.buildTextLine());
         }, 700);
         return () => clearTimeout(timerRef.current);
-    }, [value]);
+    }, [content]);
 
     useEffect(() => {
         if (!isFocused) return;
@@ -61,7 +51,7 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
     }, [isFocused]);
 
     function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
-        setValue(event.target.value);
+        setContent(event.target.value);
         const el = ref.current;
         if (el) {
             el.style.height = 'auto';
@@ -70,7 +60,7 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
     }
 
     function handleKeyPress(event: KeyboardEvent<HTMLTextAreaElement>) {
-        if (event.key === 'Backspace' && value === '' && line) {
+        if (event.key === 'Backspace' && content === '' && line) {
             event.preventDefault();
             deleteLine(line.id);
             return;
@@ -99,15 +89,7 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
             event.preventDefault();
             if (!line) {
                 clearTimeout(timerRef.current);
-                saveLine({
-                    id: uuid(),
-                    content: '',
-                    isPinned: false,
-                    hasIdentation: false,
-                    isActive: true,
-                    creationDate: new Date(),
-                    createdBy: '',
-                });
+                saveLine(Def.buildTextLine());
                 return;
             }
 
@@ -131,26 +113,18 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
 
         if (line) {
             const lineFound = getLine(line.id)!;
-            const lineToUpdate: Models.TextLine = { ...lineFound, content: value };
+            const lineToUpdate: Def.TextLine = { ...lineFound, content };
             updateLine(lineToUpdate);
             addNewRow(line.id);
             return;
         }
-        const newLine: Models.TextLine = {
-            id: uuid(),
-            content: value,
-            isPinned: false,
-            hasIdentation: false,
-            isActive: true,
-            creationDate: new Date(),
-            createdBy: '',
-        };
+        const newLine: Def.TextLine = Def.buildTextLine({ content });
         saveLine(newLine);
         addNewRow(newLine.id);
-        setValue('');
+        setContent('');
     }
 
-    function handleFocus(line?: Models.TextLine) {
+    function handleFocus(line?: Def.TextLine) {
         if (!line) return;
         setSelectedLine(line.id);
     }
@@ -169,7 +143,7 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
                 id={line?.id ?? 'new-line'}
                 name={line?.id ?? 'new-line'}
                 ref={ref}
-                value={value}
+                value={content}
                 onChange={handleChange}
                 rows={1}
                 placeholder={`Write ${'\"/\"'} to see options...`}

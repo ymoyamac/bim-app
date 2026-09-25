@@ -4,7 +4,9 @@ export * from './stores';
 export { TextLine } from './TextLine';
 export { TextParagraph } from './TextParagraph';
 
-export namespace Models {
+import { v7 as uuid } from 'uuid';
+
+export namespace Def {
     
     export interface Text {
         uuid: string;
@@ -33,6 +35,19 @@ export namespace Models {
         isActive: boolean;
         creationDate: Date;
         createdBy: string;
+    }
+
+    export function buildTextLine(overrides: Partial<TextLine> = {}): TextLine {
+        return {
+            id: uuid(),
+            content: '',
+            isPinned: false,
+            hasIdentation: false,
+            isActive: true,
+            creationDate: new Date(),
+            createdBy: '',
+            ...overrides
+        };
     }
 
 }

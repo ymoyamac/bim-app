@@ -1,20 +1,18 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import type { Models } from '@/components/Text';
-
-import { v7 as uuid } from 'uuid';
+import { Def } from '@/components/Text';
 
 type TextState = {
-    lines: Models.TextLine[];
+    lines: Def.TextLine[];
     selectedLine: string | undefined;
 };
 
 type TextActions = {
     setSelectedLine: (id: string | undefined) => void;
-    getLine: (id: string) => Models.TextLine | undefined;
-    saveLine: (line: Models.TextLine) => void;
-    updateLine: (line: Models.TextLine) => void;
+    getLine: (id: string) => Def.TextLine | undefined;
+    saveLine: (line: Def.TextLine) => void;
+    updateLine: (line: Def.TextLine) => void;
     addNewRow: (id: string) => void;
     deleteLine: (id: string) => void;
 };
@@ -54,7 +52,7 @@ export const useTextStore = create<TextStore>()(
     })),
 );
 
-function addBlank(state: TextStore, id: string): Models.TextLine[] {
+function addBlank(state: TextStore, id: string): Def.TextLine[] {
 
     const lineFound = state.lines.find((line) => line.id === id);
     if (!lineFound) return state.lines;
@@ -64,15 +62,7 @@ function addBlank(state: TextStore, id: string): Models.TextLine[] {
     const left = state.lines.slice(0, end);
     const rigth = state.lines.slice(isTheLastElement ? state.lines.length : end + 1);
 
-    const blank: Models.TextLine = {
-        id: uuid(),
-        content: '',
-        isPinned: false,
-        hasIdentation: false,
-        isActive: true,
-        creationDate: new Date(),
-        createdBy: '',
-    };
+    const blank: Def.TextLine = Def.buildTextLine();;
 
     return [...left, lineFound, blank, ...rigth];
 }
