@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Def, useTextStore } from '@/components/Text';
+import { type Types, useTextStore, buildTextLine } from '@/components/Text';
 
 import classNames from 'classnames';
 
@@ -33,11 +33,11 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
             
             if (line) {
                 const lineFound = getLine(line.id)!;
-                const noteToUpdate: Def.TextLine = { ...lineFound, content };
+                const noteToUpdate: Types.TextLine = { ...lineFound, content };
                 updateLine(noteToUpdate);
                 return;
             }
-            saveLine(Def.buildTextLine());
+            saveLine(buildTextLine());
         }, 700);
         return () => clearTimeout(timerRef.current);
     }, [content]);
@@ -89,7 +89,7 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
             event.preventDefault();
             if (!line) {
                 clearTimeout(timerRef.current);
-                saveLine(Def.buildTextLine());
+                saveLine(buildTextLine());
                 return;
             }
 
@@ -113,18 +113,18 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
 
         if (line) {
             const lineFound = getLine(line.id)!;
-            const lineToUpdate: Def.TextLine = { ...lineFound, content };
+            const lineToUpdate: Types.TextLine = { ...lineFound, content };
             updateLine(lineToUpdate);
             addNewRow(line.id);
             return;
         }
-        const newLine: Def.TextLine = Def.buildTextLine({ content });
+        const newLine: Types.TextLine = buildTextLine({ content });
         saveLine(newLine);
         addNewRow(newLine.id);
         setContent('');
     }
 
-    function handleFocus(line?: Def.TextLine) {
+    function handleFocus(line?: Types.TextLine) {
         if (!line) return;
         setSelectedLine(line.id);
     }

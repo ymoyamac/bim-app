@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { Def } from '@/components/Text';
+import { type Types, buildTextLine } from '@/components/Text';
 
 type TextState = {
-    lines: Def.TextLine[];
+    lines: Types.TextLine[];
     selectedLine: string | undefined;
 };
 
 type TextActions = {
     setSelectedLine: (id: string | undefined) => void;
-    getLine: (id: string) => Def.TextLine | undefined;
-    saveLine: (line: Def.TextLine) => void;
-    updateLine: (line: Def.TextLine) => void;
+    getLine: (id: string) => Types.TextLine | undefined;
+    saveLine: (line: Types.TextLine) => void;
+    updateLine: (line: Types.TextLine) => void;
     addNewRow: (id: string) => void;
     deleteLine: (id: string) => void;
 };
@@ -52,7 +52,7 @@ export const useTextStore = create<TextStore>()(
     })),
 );
 
-function addBlank(state: TextStore, id: string): Def.TextLine[] {
+function addBlank(state: TextStore, id: string): Types.TextLine[] {
 
     const lineFound = state.lines.find((line) => line.id === id);
     if (!lineFound) return state.lines;
@@ -62,7 +62,7 @@ function addBlank(state: TextStore, id: string): Def.TextLine[] {
     const left = state.lines.slice(0, end);
     const rigth = state.lines.slice(isTheLastElement ? state.lines.length : end + 1);
 
-    const blank: Def.TextLine = Def.buildTextLine();;
+    const blank: Types.TextLine = buildTextLine();
 
     return [...left, lineFound, blank, ...rigth];
 }
