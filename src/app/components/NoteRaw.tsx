@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { useNoteStore } from '@/stores';
 import type { Note } from '@/models';
@@ -10,12 +10,12 @@ export interface NoteRawProps {
     className?: string;
     id?: string;
     name?: string;
-    note?: Note;
+    noteId?: string;
     hasFocus?: boolean;
 }
 
-export function NoteRaw({ note, hasFocus }: NoteRawProps) {
-    const selectedNote = useNoteStore((state) => state.selectedNote);
+export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps) {
+    const note = useNoteStore((s) => noteId ? s.notes.find((n) => n.id === noteId) : undefined);
     const getNoteById = useNoteStore((state) => state.getNoteById);
     const saveNote = useNoteStore((state) => state.saveNote);
     const updateNote = useNoteStore((state) => state.updateNote);
@@ -82,6 +82,25 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
             event.preventDefault();
             deleteNote(note.id);
             return;
+        }
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            const { notes } = useNoteStore.getState();
+            const offset = event.key === 'ArrowDown' ? 1 : -1;
+            const index = notes.findIndex((n) => n.id === note?.id);
+            const target = notes[index + offset];
+            if (!target) return;
+            setSelectedNote(target.id);
+        }
+
+        if (event.shiftKey) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                if (!note) return;
+                const noteFound = getNoteById(note.id)!;
+                updateNote({ ...noteFound, hasIdentation: false });
+                return;
+            }
         }
 
         if (event.key === 'Tab') {
@@ -157,7 +176,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
     return (
         <div className={classNames('mb-1 flex flex-row gap-2 group relative', {
                 'w-full': !note?.hasIdentation,
-                'w-[90%]': note?.hasIdentation,
+                'w-[95%]': note?.hasIdentation,
             })}>
             <div className='flex justify-center opacity-0 group-hover:opacity-50 transition-opacity duration-300 hover:cursor-pointer'>
                 <span className='material-symbols-outlined opacity-40'>add</span>{' '}
@@ -178,4 +197,4 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
             />
         </div>
     );
-}
+})

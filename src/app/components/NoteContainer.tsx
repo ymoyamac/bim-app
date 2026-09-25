@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { NoteDay, NoteRaw } from '@/components';
 import { useLocalDate } from '@/hooks';
 import { useNoteStore } from '@/stores';
@@ -10,10 +11,10 @@ export interface DayProps {
 export function NoteContainer() {
     const { day, dayOfMonth, month, year } = useLocalDate();
 
-    const notes = useNoteStore((state) => state.notes);
+    const notesIds = useNoteStore(useShallow((state) => state.notes.map((n) => n.id)));
 
     return (
-        <article className='mt-2 flex flex-col justify-center items-center'>
+        <article className='flex flex-col justify-center items-center'>
             <NoteDay
                 day={day[0] ?? ''}
                 dayOfMonth={dayOfMonth}
@@ -21,11 +22,11 @@ export function NoteContainer() {
                 year={year}
             />
 
-            <div className='w-[60%] flex flex-col items-end'>
-                {notes.map((note) => (
-                    <NoteRaw key={note.id} id={note.id} name={note.id} note={note} hasFocus={true} />
+            <div className='w-[40%] flex flex-col items-end'>
+                {notesIds.map((id) => (
+                    <NoteRaw key={id} id={id} name={id} noteId={id} hasFocus={true} />
                 ))}
-                {notes.length === 0 && <NoteRaw key='new-note' hasFocus={true} />}
+                {notesIds.length === 0 && <NoteRaw key='new-note' hasFocus={true} />}
             </div>
         </article>
     );
