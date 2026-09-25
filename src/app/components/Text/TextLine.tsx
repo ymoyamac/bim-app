@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { useTextStore, type Text } from '@/components/Text';
+import { useTextStore } from '@/components/Text';
+import type { Models } from '@/components/Text';
 
 import { v7 as uuid } from 'uuid';
 import classNames from 'classnames';
@@ -14,49 +15,42 @@ export interface TextLineProps {
 }
 
 export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLineProps) {
-    const textLine = useTextStore((s) => textLineId ? s.notes.find((n) => n.id === textLineId) : undefined);
-    const getNoteById = useTextStore((state) => state.getNoteById);
-    const saveNote = useTextStore((state) => state.saveNote);
-    const updateNote = useTextStore((state) => state.updateNote);
+    const line = useTextStore((s) => textLineId ? s.lines.find((n) => n.id === textLineId) : undefined);
+    const setSelectedLine = useTextStore((state) => state.setSelectedLine);
+    const getLine = useTextStore((state) => state.getLine);
+    const saveLine = useTextStore((state) => state.saveLine);
+    const updateLine = useTextStore((state) => state.updateLine);
     const addNewRow = useTextStore((state) => state.addNewRow);
-    const deleteNote = useTextStore((state) => state.deleteNote);
-    const setSelectedNote = useTextStore((state) => state.setSelectedNote);
+    const deleteLine = useTextStore((state) => state.deleteLine);
+    const isFocused = useTextStore((state) => line !== undefined && state.selectedLine === line.id);
 
-    const [value, setValue] = useState<string>(note?.description ?? '');
+    const [value, setValue] = useState<string>(line?.content ?? '');
     const ref = useRef<HTMLTextAreaElement>(null);
-
     const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
-        const savedValue = note?.description ?? '';
+        const savedValue = line?.content ?? '';
         if (value === savedValue) return;
         timerRef.current = setTimeout(() => {            
             
-            if (note) {
-                const noteFound = getNoteById(note.id)!;
-                const noteToUpdate: Text = { ...noteFound, description: value };
-                updateNote(noteToUpdate);
+            if (line) {
+                const lineFound = getLine(line.id)!;
+                const noteToUpdate: Models.TextLine = { ...lineFound, content: value };
+                updateLine(noteToUpdate);
                 return;
             }
-            saveNote({
+            saveLine({
                 id: uuid(),
-                title: '',
-                description: value,
-                isCompleted: false,
+                content: '',
                 isPinned: false,
-                isImportant: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                createdBy: 'default',
-                updatedBy: 'default',
-                isActive: true,
                 hasIdentation: false,
+                isActive: true,
+                creationDate: new Date(),
+                createdBy: '',
             });
         }, 700);
         return () => clearTimeout(timerRef.current);
     }, [value]);
-
-    const isFocused = useTextStore((s) => note !== undefined && s.selectedNote === note.id);
 
     useEffect(() => {
         if (!isFocused) return;
@@ -76,56 +70,50 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
     }
 
     function handleKeyPress(event: KeyboardEvent<HTMLTextAreaElement>) {
-        console.log(event)
-        if (event.key === 'Backspace' && value === '' && note) {
+        if (event.key === 'Backspace' && value === '' && line) {
             event.preventDefault();
-            deleteNote(note.id);
+            deleteLine(line.id);
             return;
         }
 
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            const { notes } = useTextStore.getState();
+            const { lines } = useTextStore.getState();
             const offset = event.key === 'ArrowDown' ? 1 : -1;
-            const index = notes.findIndex((n) => n.id === note?.id);
-            const target = notes[index + offset];
+            const index = lines.findIndex((n) => n.id === line?.id);
+            const target = lines[index + offset];
             if (!target) return;
-            setSelectedNote(target.id);
+            setSelectedLine(target.id);
         }
 
         if (event.shiftKey) {
             if (event.key === 'Tab') {
                 event.preventDefault();
-                if (!note) return;
-                const noteFound = getNoteById(note.id)!;
-                updateNote({ ...noteFound, hasIdentation: false });
+                if (!line) return;
+                const lineFound = getLine(line.id)!;
+                updateLine({ ...lineFound, hasIdentation: false });
                 return;
             }
         }
 
         if (event.key === 'Tab') {
             event.preventDefault();
-            if (!note) {
+            if (!line) {
                 clearTimeout(timerRef.current);
-                saveNote({
+                saveLine({
                     id: uuid(),
-                    title: '',
-                    description: value,
-                    isCompleted: false,
+                    content: '',
                     isPinned: false,
-                    isImportant: false,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    createdBy: 'default',
-                    updatedBy: 'default',
+                    hasIdentation: false,
                     isActive: true,
-                    hasIdentation: true,
+                    creationDate: new Date(),
+                    createdBy: '',
                 });
                 return;
             }
 
-            if (!note) return;
-            const noteFound = getNoteById(note.id)!;
-            updateNote({ ...noteFound, hasIdentation: true });
+            if (!line) return;
+            const lineFound = getLine(line.id)!;
+            updateLine({ ...lineFound, hasIdentation: true });
             return;
         }
 
@@ -141,15 +129,15 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
         event.preventDefault();
         clearTimeout(timerRef.current);
 
-        if (note) {
-            const noteFound = getNoteById(note.id)!;
-            const noteToUpdate: Text = { ...noteFound, description: value };
-            updateNote(noteToUpdate);
-            addNewRow(note.id);
+        if (line) {
+            const lineFound = getLine(line.id)!;
+            const lineToUpdate: Models.TextLine = { ...lineFound, content: value };
+            updateLine(lineToUpdate);
+            addNewRow(line.id);
             return;
         }
-        const newNote: Text = {
-            uuid: uuid(),
+        const newLine: Models.TextLine = {
+            id: uuid(),
             content: value,
             isPinned: false,
             hasIdentation: false,
@@ -157,20 +145,20 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
             creationDate: new Date(),
             createdBy: '',
         };
-        saveNote(newNote);
-        addNewRow(newNote.uuid);
+        saveLine(newLine);
+        addNewRow(newLine.id);
         setValue('');
     }
 
-    function handleFocus(note?: Text) {
-        if (!note) return;
-        setSelectedNote(note.uuid);
+    function handleFocus(line?: Models.TextLine) {
+        if (!line) return;
+        setSelectedLine(line.id);
     }
 
     return (
         <div className={classNames('mb-1 flex flex-row gap-2 group relative', {
-                'w-full': !note?.hasIdentation,
-                'w-[95%]': note?.hasIdentation,
+                'w-full': !line?.hasIdentation,
+                'w-[95%]': line?.hasIdentation,
             })}>
             <div className='flex justify-center opacity-0 group-hover:opacity-50 transition-opacity duration-300 hover:cursor-pointer'>
                 <span className='material-symbols-outlined opacity-40'>add</span>{' '}
@@ -178,16 +166,16 @@ export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLin
 
             <textarea
                 className='w-full overflow-hidden resize-none placeholder:text-transparent hover:placeholder:text-gray-400'
-                id={note?.id ?? 'new-note'}
-                name={note?.id ?? 'new-note'}
+                id={line?.id ?? 'new-line'}
+                name={line?.id ?? 'new-line'}
                 ref={ref}
                 value={value}
                 onChange={handleChange}
                 rows={1}
-                placeholder='Write / to see options...'
+                placeholder={`Write ${'\"/\"'} to see options...`}
                 onKeyDown={(e) => handleKeyPress(e)}
                 autoFocus={hasFocus}
-                onFocus={() => handleFocus(note)}
+                onFocus={() => handleFocus(line)}
             />
         </div>
     );

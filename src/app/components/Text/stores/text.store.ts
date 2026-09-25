@@ -10,7 +10,7 @@ type TextState = {
     selectedLine: string | undefined;
 };
 
-type TextStoreActions = {
+type TextActions = {
     setSelectedLine: (id: string | undefined) => void;
     getLine: (id: string) => Models.TextLine | undefined;
     saveLine: (line: Models.TextLine) => void;
@@ -19,7 +19,7 @@ type TextStoreActions = {
     deleteLine: (id: string) => void;
 };
 
-type TextStore = TextState & TextStoreActions;
+type TextStore = TextState & TextActions;
 
 export const useTextStore = create<TextStore>()(
     devtools((set, get) => ({
@@ -27,12 +27,12 @@ export const useTextStore = create<TextStore>()(
         selectedLine: undefined,
         setSelectedLine: (id) => set({ selectedLine: id }, false, 'setSelectedLine'),
         getLine: (id) => get().lines.find((line) => line.id === id),
-        saveLine: (line) => set((state) => ({ lines: [...state.lines, line], selectedNote: line.id }), false, 'saveLine'),
-        updateLine: (line) => set((state) => ({ lines: state.lines.map((n) => n.id === line.id ? { ...line, updatedAt: new Date() } : n), selectedLine: line.id }), false, 'updateLine'),
+        saveLine: (line) => set((state) => ({ lines: [...state.lines, line], selectedLine: line.id }), false, 'saveLine'),
+        updateLine: (line) => set((state) => ({ lines: state.lines.map((n) => n.id === line.id ? { ...line } : n), selectedLine: line.id }), false, 'updateLine'),
         addNewRow: (id) => set(
             (state) => {
                 const lines = addBlank(state, id);
-                const blank = lines[lines.findIndex((n) => n.id === id) + 1];
+                const blank = lines[lines.findIndex((line) => line.id === id) + 1];
                 return { lines, selectedLine: blank?.id ?? id };
             },
             false,
@@ -40,11 +40,11 @@ export const useTextStore = create<TextStore>()(
         ),
         deleteLine: (id) => set(
             (state) => {
-                const index = state.lines.findIndex((n) => n.id === id);
+                const index = state.lines.findIndex((line) => line.id === id);
                 const nextToSelect = state.lines[index - 1] ?? state.lines[index + 1];
                 return {
-                    lines: state.lines.filter((n) => n.id !== id),
-                    selectedNote: nextToSelect?.id,
+                    lines: state.lines.filter((line) => line.id !== id),
+                    selectedLine: nextToSelect?.id,
                 };
             },
             false,

@@ -2,7 +2,7 @@
 export * from './stores';
 
 export { TextLine } from './TextLine';
-export { Paragraph } from './Paragraph';
+export { TextParagraph } from './TextParagraph';
 
 export namespace Models {
     
