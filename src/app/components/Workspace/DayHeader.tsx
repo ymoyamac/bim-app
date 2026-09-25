@@ -1,11 +1,12 @@
-interface NoteDayProps {
-    day: string | string[];
+interface DayHeaderProps {
+    today: Date | null;
+    day: string[];
     dayOfMonth: number;
-    month: string | string[];
+    month: string[];
     year: number;
 }
 
-export function NoteDay({ day, dayOfMonth, month, year }: NoteDayProps) {
+export function DayHeader({ day, dayOfMonth, month, year }: DayHeaderProps) {
     return (
         <header className='w-full flex flex-row gap-5 justify-start items-center'>
             <div className='py-5 px-6 border border-indigo-500 rounded-full text-center'>

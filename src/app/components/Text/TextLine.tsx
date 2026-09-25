@@ -1,27 +1,26 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { useNoteStore } from '@/stores';
-import type { Note } from '@/models';
+import { useTextStore, type Text } from '@/components/Text';
 
 import { v7 as uuid } from 'uuid';
 import classNames from 'classnames';
 
-export interface NoteRawProps {
+export interface TextLineProps {
     className?: string;
     id?: string;
     name?: string;
-    noteId?: string;
+    textLineId?: string;
     hasFocus?: boolean;
 }
 
-export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps) {
-    const note = useNoteStore((s) => noteId ? s.notes.find((n) => n.id === noteId) : undefined);
-    const getNoteById = useNoteStore((state) => state.getNoteById);
-    const saveNote = useNoteStore((state) => state.saveNote);
-    const updateNote = useNoteStore((state) => state.updateNote);
-    const addNewRow = useNoteStore((state) => state.addNewRow);
-    const deleteNote = useNoteStore((state) => state.deleteNote);
-    const setSelectedNote = useNoteStore((state) => state.setSelectedNote);
+export const TextLine = memo(function TextLine({ textLineId, hasFocus }: TextLineProps) {
+    const textLine = useTextStore((s) => textLineId ? s.notes.find((n) => n.id === textLineId) : undefined);
+    const getNoteById = useTextStore((state) => state.getNoteById);
+    const saveNote = useTextStore((state) => state.saveNote);
+    const updateNote = useTextStore((state) => state.updateNote);
+    const addNewRow = useTextStore((state) => state.addNewRow);
+    const deleteNote = useTextStore((state) => state.deleteNote);
+    const setSelectedNote = useTextStore((state) => state.setSelectedNote);
 
     const [value, setValue] = useState<string>(note?.description ?? '');
     const ref = useRef<HTMLTextAreaElement>(null);
@@ -35,7 +34,7 @@ export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps)
             
             if (note) {
                 const noteFound = getNoteById(note.id)!;
-                const noteToUpdate: Note = { ...noteFound, description: value };
+                const noteToUpdate: Text = { ...noteFound, description: value };
                 updateNote(noteToUpdate);
                 return;
             }
@@ -57,7 +56,7 @@ export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps)
         return () => clearTimeout(timerRef.current);
     }, [value]);
 
-    const isFocused = useNoteStore((s) => note !== undefined && s.selectedNote === note.id);
+    const isFocused = useTextStore((s) => note !== undefined && s.selectedNote === note.id);
 
     useEffect(() => {
         if (!isFocused) return;
@@ -85,7 +84,7 @@ export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps)
         }
 
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            const { notes } = useNoteStore.getState();
+            const { notes } = useTextStore.getState();
             const offset = event.key === 'ArrowDown' ? 1 : -1;
             const index = notes.findIndex((n) => n.id === note?.id);
             const target = notes[index + offset];
@@ -144,33 +143,28 @@ export const NoteRaw = memo(function NoteRaw({ noteId, hasFocus }: NoteRawProps)
 
         if (note) {
             const noteFound = getNoteById(note.id)!;
-            const noteToUpdate: Note = { ...noteFound, description: value };
+            const noteToUpdate: Text = { ...noteFound, description: value };
             updateNote(noteToUpdate);
             addNewRow(note.id);
             return;
         }
-        const newNote: Note = {
-            id: uuid(),
-            title: '',
-            description: value,
-            isCompleted: false,
+        const newNote: Text = {
+            uuid: uuid(),
+            content: value,
             isPinned: false,
-            isImportant: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            createdBy: 'default',
-            updatedBy: 'default',
-            isActive: true,
             hasIdentation: false,
+            isActive: true,
+            creationDate: new Date(),
+            createdBy: '',
         };
         saveNote(newNote);
-        addNewRow(newNote.id);
+        addNewRow(newNote.uuid);
         setValue('');
     }
 
-    function handleFocus(note?: Note) {
+    function handleFocus(note?: Text) {
         if (!note) return;
-        setSelectedNote(note.id);
+        setSelectedNote(note.uuid);
     }
 
     return (

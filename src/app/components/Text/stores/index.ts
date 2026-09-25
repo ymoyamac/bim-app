@@ -1,0 +1,1 @@
+export { useTextStore } from './text.store';

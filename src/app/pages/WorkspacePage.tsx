@@ -1,9 +1,9 @@
-import { NoteContainer } from '@/components';
+import { Paragraph } from '@/components';
 
 export function WorkspacePage() {
     return (
         <section className='w-[60%]'>
-            <NoteContainer />
+            <Paragraph />
         </section>
     );
 }

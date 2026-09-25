@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { LocalDate } from '@/models';
+import type { LocalDate } from '@/components/Workspace';
 
 const MONTHS: string[][] = [
     ['Junuary', 'Enero'],
