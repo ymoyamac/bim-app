@@ -21,7 +21,7 @@ export function NoteContainer() {
                 year={year}
             />
 
-            <div className='w-[90%]'>
+            <div className='w-[60%] flex flex-col items-end'>
                 {notes.map((note) => (
                     <NoteRaw key={note.id} id={note.id} name={note.id} note={note} hasFocus={true} />
                 ))}

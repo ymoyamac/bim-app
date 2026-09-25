@@ -4,6 +4,7 @@ import { useNoteStore } from '@/stores';
 import type { Note } from '@/models';
 
 import { v7 as uuid } from 'uuid';
+import classNames from 'classnames';
 
 export interface NoteRawProps {
     className?: string;
@@ -14,6 +15,7 @@ export interface NoteRawProps {
 }
 
 export function NoteRaw({ note, hasFocus }: NoteRawProps) {
+    const selectedNote = useNoteStore((state) => state.selectedNote);
     const getNoteById = useNoteStore((state) => state.getNoteById);
     const saveNote = useNoteStore((state) => state.saveNote);
     const updateNote = useNoteStore((state) => state.updateNote);
@@ -49,6 +51,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
                 createdBy: 'default',
                 updatedBy: 'default',
                 isActive: true,
+                hasIdentation: false,
             });
         }, 700);
         return () => clearTimeout(timerRef.current);
@@ -74,10 +77,37 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
     }
 
     function handleKeyPress(event: KeyboardEvent<HTMLTextAreaElement>) {
-
+        console.log(event)
         if (event.key === 'Backspace' && value === '' && note) {
             event.preventDefault();
             deleteNote(note.id);
+            return;
+        }
+
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            if (!note) {
+                clearTimeout(timerRef.current);
+                saveNote({
+                    id: uuid(),
+                    title: '',
+                    description: value,
+                    isCompleted: false,
+                    isPinned: false,
+                    isImportant: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    createdBy: 'default',
+                    updatedBy: 'default',
+                    isActive: true,
+                    hasIdentation: true,
+                });
+                return;
+            }
+
+            if (!note) return;
+            const noteFound = getNoteById(note.id)!;
+            updateNote({ ...noteFound, hasIdentation: true });
             return;
         }
 
@@ -100,7 +130,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
             addNewRow(note.id);
             return;
         }
-        const newNote = {
+        const newNote: Note = {
             id: uuid(),
             title: '',
             description: value,
@@ -112,6 +142,7 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
             createdBy: 'default',
             updatedBy: 'default',
             isActive: true,
+            hasIdentation: false,
         };
         saveNote(newNote);
         addNewRow(newNote.id);
@@ -124,7 +155,10 @@ export function NoteRaw({ note, hasFocus }: NoteRawProps) {
     }
 
     return (
-        <div className='m-2 flex flex-row gap-2 group relative'>
+        <div className={classNames('mb-1 flex flex-row gap-2 group relative', {
+                'w-full': !note?.hasIdentation,
+                'w-[90%]': note?.hasIdentation,
+            })}>
             <div className='flex justify-center opacity-0 group-hover:opacity-50 transition-opacity duration-300 hover:cursor-pointer'>
                 <span className='material-symbols-outlined opacity-40'>add</span>{' '}
             </div>

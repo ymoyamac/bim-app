@@ -10,6 +10,7 @@ export interface Note {
     createdBy: string;
     updatedBy: string;
     isActive: boolean;
+    hasIdentation: boolean;
 }
 
 export type NoteMap = Record<string, Note>;
