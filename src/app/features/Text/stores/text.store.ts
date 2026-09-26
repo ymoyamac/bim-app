@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { type Types, buildTextLine } from '@/components/Text';
+import { type Types, buildTextLine } from '@/features/Text';
 
 type TextState = {
     lines: Types.TextLine[];

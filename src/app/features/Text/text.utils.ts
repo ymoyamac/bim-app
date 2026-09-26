@@ -1,5 +1,5 @@
 import { v7 as uuid } from 'uuid';
-import type { Types } from '@/components/Text';
+import type { Types } from '@/features/Text';
 
 export function buildTextLine(overrides: Partial<Types.TextLine> = {}) {
     return {

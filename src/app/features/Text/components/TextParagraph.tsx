@@ -1,6 +1,6 @@
 import { useShallow } from 'zustand/shallow';
 
-import { TextLine, useTextStore } from '@/components/Text';
+import { TextLine, useTextStore } from '@/features/Text';
 
 export function TextParagraph() {
     const lineIds = useTextStore(useShallow((state) => state.lines.map((line) => line.id)));

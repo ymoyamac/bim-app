@@ -1,9 +1,9 @@
-import { TextParagraph } from '@/components/Text';
+import { TextContainer } from '@/features/Text';
 
 export function WorkspacePage() {
     return (
         <section className='w-[60%]'>
-            <TextParagraph />
+            <TextContainer />
         </section>
     );
 }
